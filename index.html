@@ -3,110 +3,611 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Obat Habis</title>
-    <style>
-        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-        body { background: #f4f6f8; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .container { background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 480px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        h2 { text-align: center; color: #1e293b; margin-top: 0; margin-bottom: 20px; }
-        .input-box { display: flex; gap: 8px; margin-bottom: 20px; }
-        input { flex: 1; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; outline: none; }
-        input:focus { border-color: #2563eb; }
-        button.add-btn { background: #2563eb; color: white; border: none; padding: 12px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        button.add-btn:hover { background: #1d4ed8; }
-        ul { list-style: none; padding: 0; margin: 0; }
-        li { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .obat-info { display: flex; flex-direction: column; gap: 4px; }
-        .nama-obat { font-weight: 600; color: #0f172a; font-size: 15px; }
-        .tanggal { font-size: 12px; color: #64748b; }
-        button.del-btn { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; }
-        button.del-btn:hover { background: #dc2626; }
-        .empty { text-align: center; color: #94a3b8; font-size: 14px; margin-top: 20px; }
-    </style>
-
-    <!-- Import Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <title>Rekam Medis Elektronik + SOAP & ICD-10 (Live Cloud)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-100 font-sans min-h-screen text-slate-800">
 
-<div class="container">
-    <h2>💊 Daftar Obat Habis</h2>
-    <div class="input-box">
-        <input type="text" id="obatInput" placeholder="Ketik nama obat..." onkeypress="if(event.key==='Enter') tambahObat()">
-        <button class="add-btn" onclick="tambahObat()">Tambah</button>
+    <!-- Header / Navbar -->
+    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                🏥 Aplikasi RME & Rekam Medis SOAP
+            </h1>
+            <div class="flex items-center gap-2 bg-indigo-800 px-3 py-1 rounded-full text-xs font-semibold">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Terhubung ke Cloud (Firebase)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= HALAMAN UTAMA (PENDAFTARAN & PENCARIAN) ================= -->
+    <div id="viewMain" class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        
+        <!-- Tab Navigasi: Pasien Lama vs Pasien Baru -->
+        <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex gap-2">
+            <button id="tabLama" onclick="switchTab('lama')" 
+                    class="flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-sm">
+                🔍 Pasien Lama (Cari & Kunjungan Ulang)
+            </button>
+            <button id="tabBaru" onclick="switchTab('baru')" 
+                    class="flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200">
+                ➕ Pasien Baru (Pendaftaran Pertama)
+            </button>
+        </div>
+
+        <!-- TAB 1: PENCARIAN PASIEN LAMA -->
+        <section id="sectionPasienLama" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Pencarian Data Pasien Lama</h2>
+                    <p class="text-xs text-slate-400">Cari nama/NIK pasien untuk menambah rekam medis kunjungan hari ini.</p>
+                </div>
+                <span id="patientCount" class="text-xs bg-indigo-50 text-indigo-600 font-semibold px-3 py-1 rounded-md">
+                    Total: 0 Pasien
+                </span>
+            </div>
+
+            <!-- Search Bar -->
+            <div>
+                <input type="text" id="searchInput" onkeyup="renderPatientTable()" 
+                       placeholder="🔍 Ketik Nama Pasien atau NIK di sini..."
+                       class="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+            </div>
+
+            <!-- Tabel Pasien -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 text-xs">
+                            <th class="p-3 font-semibold">Tgl Kunjungan Terakhir</th>
+                            <th class="p-3 font-semibold">Nama Pasien</th>
+                            <th class="p-3 font-semibold">NIK</th>
+                            <th class="p-3 font-semibold">No HP</th>
+                            <th class="p-3 font-semibold">Penanggung Jawab</th>
+                            <th class="p-3 font-semibold text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientTableBody" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="6" class="p-4 text-center text-slate-400 italic">
+                                Memuat data dari database cloud...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 2: PENDAFTARAN PASIEN BARU -->
+        <section id="sectionPasienBaru" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200 max-w-2xl mx-auto space-y-4">
+            <div class="pb-3 border-b border-slate-100">
+                <h2 class="text-lg font-bold text-slate-800">Formulir Pendaftaran Pasien Baru</h2>
+                <p class="text-xs text-slate-400">Isi formulir ini untuk pasien yang belum pernah berobat sebelumnya.</p>
+            </div>
+
+            <form id="patientForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Tanggal Daftar</label>
+                        <input type="date" id="tanggalKunjungan" required
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Nama Lengkap Pasien</label>
+                        <input type="text" id="nama" required placeholder="Contoh: Budi Santoso"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">NIK (16 Digit)</label>
+                        <input type="number" id="nik" required placeholder="3578xxxxxxxxxxxx"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">No. HP / WhatsApp</label>
+                        <input type="tel" id="noHp" required placeholder="081234567890"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Penanggung Jawab Pasien</label>
+                    <input type="text" id="penanggungJawab" required placeholder="Contoh: Siti (Istri)"
+                           class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Alamat Lengkap</label>
+                    <textarea id="alamat" rows="3" required placeholder="Jl. Mawar No. 12, Kota..."
+                              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm shadow-sm">
+                    Simpan & Daftarkan Pasien Baru
+                </button>
+            </form>
+        </section>
+
     </div>
-    <ul id="daftarObat"></ul>
-    <p id="pesanKosong" class="empty">Loading data...</p>
-</div>
 
-<script>
-    // Konfigurasi Firebase dari Layarmu
-    const firebaseConfig = {
-        apiKey: "AIzaSyCYDh-GUsnotJfuRYOjpU0-IDg2I2dRktM",
-        authDomain: "obat-habis.firebaseapp.com",
-        databaseURL: "https://obat-habis-default-rtdb.firebaseio.com",
-        projectId: "obat-habis",
-        storageBucket: "obat-habis.firebasestorage.app",
-        messagingSenderId: "550649121263",
-        appId: "1:550649121263:web:a0e4d5abc8ee9a4ee18e1a"
-    };
-
-    // Inisialisasi Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database().ref('daftarObat');
-
-    // Membaca data dari Database secara Realtime
-    db.on('value', (snapshot) => {
-        const ul = document.getElementById('daftarObat');
-        const pesan = document.getElementById('pesanKosong');
-        ul.innerHTML = '';
+    <!-- ================= HALAMAN SOAP (PEMERIKSAAN MEDIS) ================= -->
+    <div id="viewSoap" class="hidden max-w-7xl mx-auto px-4 py-8 space-y-6">
         
-        const data = snapshot.val();
-        if (!data) {
-            pesan.textContent = 'Semua stok aman! Tidak ada obat habis.';
-            pesan.style.display = 'block';
-        } else {
-            pesan.style.display = 'none';
-            Object.keys(data).forEach((key) => {
-                const item = data[key];
-                ul.innerHTML += `
-                    <li>
-                        <div class="obat-info">
-                            <span class="nama-obat">${item.nama}</span>
-                            <span class="tanggal">🕒 Diminta: ${item.tanggal}</span>
+        <!-- Header Info Pasien -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <button onclick="window.kembaliKeUtama()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 mb-2 inline-flex items-center gap-1">
+                    ← Kembali ke Halaman Utama
+                </button>
+                <h2 id="soapPatientName" class="text-2xl font-bold text-slate-800">Nama Pasien</h2>
+                <p id="soapPatientInfo" class="text-sm text-slate-500 mt-1">NIK: - | No HP: - | Penanggung Jawab: -</p>
+                <p id="soapPatientMeta" class="text-xs text-slate-400 mt-0.5">Alamat: -</p>
+            </div>
+            <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-lg text-indigo-900 text-xs max-w-sm">
+                💡 **Sistem Real-Time:** Setiap rekam medis yang disimpan di sini akan langsung tersinkronkan ke seluruh perangkat yang membuka aplikasi ini.
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Form Input SOAP Baru (Kiri) -->
+            <section class="lg:col-span-5 bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-fit">
+                <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    📝 Input Pemeriksaan SOAP Baru
+                </h3>
+
+                <form id="soapForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                            Tanggal Kunjungan Hari Ini
+                        </label>
+                        <input type="date" id="soapTanggal" required
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                            Subjective (S) - Keluhan Utama
+                        </label>
+                        <textarea id="soapS" rows="2" required placeholder="Keluhan yang dirasakan pasien..."
+                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                            Objective (O) - Tanda Vital / Pemeriksaan Fisik
+                        </label>
+                        <textarea id="soapO" rows="2" required placeholder="TD: 120/80, Suhu: 36.5°C, BB, TB, dll..."
+                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                    </div>
+
+                    <!-- ASSESSMENT DENGAN ICD-10 DROPDOWN SEARCH -->
+                    <div class="relative space-y-1">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                            Assessment (A) - Diagnosis (ICD-10)
+                        </label>
+                        
+                        <input type="text" id="icdSearch" onkeyup="window.searchICD10()" placeholder="🔍 Ketik kode ICD atau nama penyakit (cth: Diare, J00)..."
+                               class="w-full px-3 py-2 border border-indigo-300 bg-indigo-50/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium">
+
+                        <!-- Dropdown Hasil Pencarian ICD-10 -->
+                        <div id="icdDropdown" class="hidden absolute left-0 right-0 top-[60px] bg-white border border-slate-200 rounded-lg shadow-xl max-h-52 overflow-y-auto z-20 divide-y divide-slate-100">
+                            <!-- Hasil Search ICD-10 -->
                         </div>
-                        <button class="del-btn" onclick="hapusObat('${key}')">Sudah Ada / Hapus</button>
-                    </li>
-                `;
+
+                        <!-- Hasil Terpilih ICD-10 -->
+                        <textarea id="soapA" rows="2" required readonly placeholder="Diagnosis terpilih dari ICD-10 akan muncul di sini..."
+                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-slate-50 text-indigo-900 font-semibold focus:outline-none cursor-not-allowed"></textarea>
+
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-400">*Pilih penyakit dari dropdown di atas.</span>
+                            <button type="button" onclick="window.clearICD()" class="text-red-500 hover:underline font-semibold">
+                                ↺ Reset Diagnosis
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                            Plan (P) - Rencana Terapi / Resep Obat
+                        </label>
+                        <textarea id="soapP" rows="3" required placeholder="Resep obat, tindakan, edukasi..."
+                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm shadow-sm">
+                        Simpan Rekam Medis SOAP
+                    </button>
+                </form>
+            </section>
+
+            <!-- Riwayat SOAP Pasien (Kanan) -->
+            <section class="lg:col-span-7 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">
+                    📚 Riwayat Seluruh Rekam Medis Pasien
+                </h3>
+
+                <div id="soapHistoryList" class="space-y-4">
+                    <!-- Cards Riwayat SOAP -->
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK & JavaScript Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Konfigurasi Firebase milik Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyAU8D9lJL4Xy3nHzi3Z6ji0RhrECg_wUlM",
+            authDomain: "rme-klinik-481fe.firebaseapp.com",
+            databaseURL: "https://rme-klinik-481fe-default-rtdb.firebaseio.com",
+            projectId: "rme-klinik-481fe",
+            storageBucket: "rme-klinik-481fe.firebasestorage.app",
+            messagingSenderId: "1034865171513",
+            appId: "1:1034865171513:web:b0830494f8be56be9941e8"
+        };
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const patientsRef = ref(database, 'pasien');
+
+        let globalPatients = [];
+        let currentPatientId = null;
+
+        // Auto-set tanggal hari ini
+        document.getElementById('tanggalKunjungan').valueAsDate = new Date();
+        document.getElementById('soapTanggal').valueAsDate = new Date();
+
+        // Database ICD-10
+        const icd10Database = [
+            { code: "A01.0", name: "Typhoid fever (Demam Tifoid / Tipes)" },
+            { code: "A09", name: "Gastroenteritis and colitis (Diare / Muntaber)" },
+            { code: "B00.9", name: "Herpesviral infection, unspecified (Herpes)" },
+            { code: "B05.9", name: "Measles without complication (Campak)" },
+            { code: "B07", name: "Viral warts (Kutil)" },
+            { code: "E11.9", name: "Non-insulin-dependent diabetes mellitus (Diabetes / Kencing Manis)" },
+            { code: "E78.5", name: "Hyperlipidemia, unspecified (Kolesterol Tinggi)" },
+            { code: "I10", name: "Essential (primary) hypertension (Hipertensi / Darah Tinggi)" },
+            { code: "J00", name: "Acute nasopharyngitis [common cold] (Common Cold / Batuk Pilek)" },
+            { code: "J02.9", name: "Acute pharyngitis, unspecified (Radang Tenggorokan)" },
+            { code: "J03.9", name: "Acute tonsillitis, unspecified (Amandel / Tonsilitis)" },
+            { code: "J06.9", name: "Acute upper respiratory infection (ISPA)" },
+            { code: "J18.9", name: "Pneumonia, unspecified (Infeksi Paru / Pneumonia)" },
+            { code: "J30.4", name: "Allergic rhinitis, unspecified (Rhinitis Alergi)" },
+            { code: "J45.9", name: "Asthma, unspecified (Asma)" },
+            { code: "K29.7", name: "Gastritis, unspecified (Maag / Gastritis)" },
+            { code: "K30", name: "Functional dyspepsia (Dispepsia)" },
+            { code: "L03.9", name: "Cellulitis, unspecified (Infeksi Kulit)" },
+            { code: "L23.9", name: "Allergic contact dermatitis (Alergi Kulit)" },
+            { code: "L30.9", name: "Dermatitis, unspecified (Eksim / Gatal Kulit)" },
+            { code: "M79.1", name: "Myalgia (Nyeri Otot / Pegal Linu)" },
+            { code: "M79.2", name: "Neuralgia and neuritis (Nyeri Saraf)" },
+            { code: "R05", name: "Cough (Batuk)" },
+            { code: "R10.4", name: "Other and unspecified abdominal pain (Nyeri Perut)" },
+            { code: "R50.9", name: "Fever, unspecified (Demam / Febris)" },
+            { code: "R51", name: "Headache (Sakit Kepala / Pusing)" },
+            { code: "T14.1", name: "Open wound of unspecified body region (Luka Terbuka)" }
+        ];
+
+        // Realtime Listener Firebase (Auto Sync All Devices)
+        onValue(patientsRef, (snapshot) => {
+            globalPatients = [];
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                Object.keys(data).forEach(key => {
+                    const p = data[key];
+                    p.id = key;
+                    
+                    if (p.soapList && typeof p.soapList === 'object') {
+                        p.soapListArray = Object.keys(p.soapList).map(sKey => ({
+                            id: sKey,
+                            ...p.soapList[sKey]
+                        }));
+                    } else {
+                        p.soapListArray = [];
+                    }
+                    globalPatients.push(p);
+                });
+            }
+            
+            renderPatientTable();
+            if (currentPatientId) {
+                renderRiwayatSOAP();
+            }
+        });
+
+        // Format Tanggal (DD/MM/YYYY)
+        function formatTanggal(dateString) {
+            if (!dateString) return '-';
+            const parts = dateString.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dateString;
+        }
+
+        // Render Tabel Utama
+        window.renderPatientTable = function() {
+            const tableBody = document.getElementById('patientTableBody');
+            const patientCount = document.getElementById('patientCount');
+            const searchKeyword = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = globalPatients.filter(p => 
+                (p.nama && p.nama.toLowerCase().includes(searchKeyword)) || 
+                (p.nik && p.nik.includes(searchKeyword))
+            );
+
+            patientCount.textContent = `Total: ${filtered.length} Pasien`;
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-slate-400 italic">
+                            Belum ada data pasien atau data tidak ditemukan.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = '';
+            filtered.slice().reverse().forEach((p) => {
+                const soapCount = p.soapListArray ? p.soapListArray.length : 0;
+                let tglTerakhir = p.tanggalKunjungan;
+                if (p.soapListArray && p.soapListArray.length > 0) {
+                    tglTerakhir = p.soapListArray[p.soapListArray.length - 1].tanggalKunjunganRaw || p.tanggalKunjungan;
+                }
+
+                const row = `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-3 text-slate-700 font-semibold whitespace-nowrap">
+                            📅 ${formatTanggal(tglTerakhir)}
+                        </td>
+                        <td class="p-3">
+                            <button onclick="window.bukaSOAP('${p.id}')" class="font-bold text-indigo-600 hover:text-indigo-900 text-left hover:underline block">
+                                ${p.nama}
+                            </button>
+                            <span class="block text-[10px] text-slate-400">${soapCount} Rekam Medis</span>
+                        </td>
+                        <td class="p-3 text-slate-600">${p.nik}</td>
+                        <td class="p-3 text-slate-600">${p.noHp}</td>
+                        <td class="p-3 text-slate-600">${p.penanggungJawab}</td>
+                        <td class="p-3 text-center space-x-1 whitespace-nowrap">
+                            <button onclick="window.bukaSOAP('${p.id}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1.5 rounded-lg font-semibold transition-colors">
+                                + Pemeriksaan (SOAP)
+                            </button>
+                            <button onclick="window.hapusSatuPasien('${p.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs px-2 py-1.5 rounded-lg font-medium transition-colors">
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>`;
+                tableBody.innerHTML += row;
+            });
+        };
+
+        // Simpan Pasien Baru ke Firebase
+        document.getElementById('patientForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const newPatient = {
+                tanggalKunjungan: document.getElementById('tanggalKunjungan').value,
+                nama: document.getElementById('nama').value,
+                nik: document.getElementById('nik').value,
+                noHp: document.getElementById('noHp').value,
+                penanggungJawab: document.getElementById('penanggungJawab').value,
+                alamat: document.getElementById('alamat').value,
+                createdAt: new Date().toISOString()
+            };
+
+            if (globalPatients.some(p => p.nik === newPatient.nik)) {
+                alert('⚠️ Pasien dengan NIK ini sudah terdaftar! Gunakan Tab "Pasien Lama".');
+                return;
+            }
+
+            push(patientsRef, newPatient)
+                .then((newRef) => {
+                    alert('Pasien baru berhasil disimpan!');
+                    document.getElementById('patientForm').reset();
+                    document.getElementById('tanggalKunjungan').valueAsDate = new Date();
+                    window.bukaSOAP(newRef.key);
+                })
+                .catch((err) => {
+                    console.error('Error saving patient:', err);
+                    alert('Gagal menyimpan ke cloud! Pastikan Rules Firebase sudah di-publish.');
+                });
+        });
+
+        // Buka Tampilan SOAP
+        window.bukaSOAP = function(patientId) {
+            const patient = globalPatients.find(p => p.id === patientId);
+            if (!patient) return;
+
+            currentPatientId = patientId;
+
+            document.getElementById('soapPatientName').textContent = patient.nama;
+            document.getElementById('soapPatientInfo').textContent = `NIK: ${patient.nik} | No. HP: ${patient.noHp} | Penanggung Jawab: ${patient.penanggungJawab}`;
+            document.getElementById('soapPatientMeta').textContent = `Alamat: ${patient.alamat}`;
+
+            document.getElementById('viewMain').classList.add('hidden');
+            document.getElementById('viewSoap').classList.remove('hidden');
+
+            document.getElementById('soapTanggal').valueAsDate = new Date();
+            window.clearICD();
+            renderRiwayatSOAP();
+        };
+
+        // Kembali ke Utama
+        window.kembaliKeUtama = function() {
+            currentPatientId = null;
+            document.getElementById('viewSoap').classList.add('hidden');
+            document.getElementById('viewMain').classList.remove('hidden');
+            document.getElementById('soapForm').reset();
+            window.clearICD();
+            window.switchTab('lama');
+        };
+
+        // Simpan SOAP ke Firebase
+        document.getElementById('soapForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentPatientId) return;
+
+            const rawDate = document.getElementById('soapTanggal').value;
+            const newSoap = {
+                tanggalKunjunganRaw: rawDate,
+                tanggalFormatted: formatTanggal(rawDate),
+                s: document.getElementById('soapS').value,
+                o: document.getElementById('soapO').value,
+                a: document.getElementById('soapA').value,
+                p: document.getElementById('soapP').value,
+                createdAt: new Date().toISOString()
+            };
+
+            const soapRef = ref(database, `pasien/${currentPatientId}/soapList`);
+            push(soapRef, newSoap)
+                .then(() => {
+                    document.getElementById('soapForm').reset();
+                    document.getElementById('soapTanggal').valueAsDate = new Date();
+                    window.clearICD();
+                    alert('Rekam Medis SOAP Berhasil Disimpan!');
+                })
+                .catch((err) => {
+                    console.error('Error saving SOAP:', err);
+                    alert('Gagal menyimpan SOAP!');
+                });
+        });
+
+        // Render Riwayat SOAP
+        function renderRiwayatSOAP() {
+            const patient = globalPatients.find(p => p.id === currentPatientId);
+            const historyContainer = document.getElementById('soapHistoryList');
+
+            if (!patient || !patient.soapListArray || patient.soapListArray.length === 0) {
+                historyContainer.innerHTML = `
+                    <div class="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl text-slate-400">
+                        Belum ada riwayat rekam medis SOAP untuk pasien ini.
+                    </div>`;
+                return;
+            }
+
+            historyContainer.innerHTML = '';
+            patient.soapListArray.slice().reverse().forEach(soap => {
+                const card = `
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
+                        <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                            <span class="text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full flex items-center gap-1">
+                                📅 Kunjungan Tanggal: ${soap.tanggalFormatted}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                            <div class="bg-white p-2.5 rounded border border-slate-200">
+                                <span class="font-bold text-red-600 block mb-1">S (Subjective):</span>
+                                <p class="text-slate-700 whitespace-pre-line">${soap.s}</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-slate-200">
+                                <span class="font-bold text-blue-600 block mb-1">O (Objective):</span>
+                                <p class="text-slate-700 whitespace-pre-line">${soap.o}</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-slate-200">
+                                <span class="font-bold text-amber-600 block mb-1">A (Assessment / ICD-10):</span>
+                                <p class="text-slate-900 font-bold whitespace-pre-line">${soap.a}</p>
+                            </div>
+                            <div class="bg-white p-2.5 rounded border border-slate-200">
+                                <span class="font-bold text-emerald-600 block mb-1">P (Plan):</span>
+                                <p class="text-slate-700 whitespace-pre-line">${soap.p}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                historyContainer.innerHTML += card;
             });
         }
-    });
 
-    function tambahObat() {
-        const input = document.getElementById('obatInput');
-        const nama = input.value.trim();
-        
-        if (nama) {
-            const sekarang = new Date();
-            const opsiTanggal = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-            const tanggalFormatted = sekarang.toLocaleDateString('id-ID', opsiTanggal).replace('.', ':');
+        // Hapus Pasien di Firebase
+        window.hapusSatuPasien = function(patientId) {
+            if (confirm('Hapus pasien ini beserta seluruh riwayat SOAP-nya dari cloud?')) {
+                const singlePatientRef = ref(database, `pasien/${patientId}`);
+                remove(singlePatientRef);
+            }
+        };
 
-            // Simpan langsung ke Database Cloud Firebase
-            db.push({
-                nama: nama,
-                tanggal: tanggalFormatted
-            });
+        // Tab Navigation
+        window.switchTab = function(tabName) {
+            const tabLama = document.getElementById('tabLama');
+            const tabBaru = document.getElementById('tabBaru');
+            const sectionPasienLama = document.getElementById('sectionPasienLama');
+            const sectionPasienBaru = document.getElementById('sectionPasienBaru');
 
-            input.value = '';
-        }
-    }
+            if (tabName === 'lama') {
+                tabLama.className = "flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-sm";
+                tabBaru.className = "flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                sectionPasienLama.classList.remove('hidden');
+                sectionPasienBaru.classList.add('hidden');
+                window.renderPatientTable();
+            } else {
+                tabBaru.className = "flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-sm";
+                tabLama.className = "flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                sectionPasienBaru.classList.remove('hidden');
+                sectionPasienLama.classList.add('hidden');
+            }
+        };
 
-    function hapusObat(id) {
-        // Hapus dari Database Cloud
-        firebase.database().ref('daftarObat/' + id).remove();
-    }
-</script>
+        // ICD-10 Autocomplete Logic
+        window.searchICD10 = function() {
+            const input = document.getElementById('icdSearch').value.toLowerCase();
+            const dropdown = document.getElementById('icdDropdown');
 
+            if (input.length < 1) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            const results = icd10Database.filter(item => 
+                item.code.toLowerCase().includes(input) || 
+                item.name.toLowerCase().includes(input)
+            );
+
+            if (results.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-xs text-slate-400 italic">Tidak ditemukan.</div>`;
+            } else {
+                dropdown.innerHTML = '';
+                results.forEach(item => {
+                    const option = document.createElement('div');
+                    option.className = 'p-2.5 hover:bg-indigo-50 cursor-pointer text-xs flex justify-between items-center transition-colors';
+                    option.innerHTML = `
+                        <div>
+                            <span class="font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded mr-2">[${item.code}]</span>
+                            <span class="text-slate-700">${item.name}</span>
+                        </div>`;
+                    option.onclick = () => {
+                        document.getElementById('soapA').value = `[${item.code}] - ${item.name}`;
+                        document.getElementById('icdSearch').value = `[${item.code}] - ${item.name}`;
+                        dropdown.classList.add('hidden');
+                    };
+                    dropdown.appendChild(option);
+                });
+            }
+            dropdown.classList.remove('hidden');
+        };
+
+        window.clearICD = function() {
+            document.getElementById('soapA').value = '';
+            document.getElementById('icdSearch').value = '';
+            document.getElementById('icdDropdown').classList.add('hidden');
+        };
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('icdDropdown');
+            const searchInput = document.getElementById('icdSearch');
+            if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>
