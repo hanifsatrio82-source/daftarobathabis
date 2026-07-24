@@ -6,6 +6,8 @@
     <title>Rekam Medis Elektronik + SOAP & ICD-10 (Live Cloud)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS CDN untuk Export Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-100 font-sans min-h-screen text-slate-800">
 
@@ -44,9 +46,15 @@
                     <h2 class="text-lg font-bold text-slate-800">Pencarian Data Pasien Lama</h2>
                     <p class="text-xs text-slate-400">Cari nama/NIK pasien untuk menambah rekam medis kunjungan hari ini.</p>
                 </div>
-                <span id="patientCount" class="text-xs bg-indigo-50 text-indigo-600 font-semibold px-3 py-1 rounded-md">
-                    Total: 0 Pasien
-                </span>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="window.exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1 shadow-sm">
+                        📊 Export Excel / Sheet
+                    </button>
+                    <span id="patientCount" class="text-xs bg-indigo-50 text-indigo-600 font-semibold px-3 py-1.5 rounded-lg">
+                        Total: 0 Pasien
+                    </span>
+                </div>
             </div>
 
             <!-- Search Bar -->
@@ -390,6 +398,65 @@
                     </tr>`;
                 tableBody.innerHTML += row;
             });
+        };
+
+        // FUNGSI EXPORT TO EXCEL / GOOGLE SHEETS
+        window.exportToExcel = function() {
+            if (globalPatients.length === 0) {
+                alert('Belum ada data pasien untuk di-export!');
+                return;
+            }
+
+            // Sheet 1: Master Pasien
+            const pasienRows = globalPatients.map((p, idx) => {
+                let tglTerakhir = p.tanggalKunjungan;
+                if (p.soapListArray && p.soapListArray.length > 0) {
+                    tglTerakhir = p.soapListArray[p.soapListArray.length - 1].tanggalKunjunganRaw || p.tanggalKunjungan;
+                }
+                return {
+                    "No": idx + 1,
+                    "Tgl Daftar Pertama": formatTanggal(p.tanggalKunjungan),
+                    "Kunjungan Terakhir": formatTanggal(tglTerakhir),
+                    "Nama Pasien": p.nama,
+                    "NIK Pasien": p.nik,
+                    "No. HP / WA": p.noHp,
+                    "Penanggung Jawab": p.penanggungJawab,
+                    "Alamat": p.alamat,
+                    "Total Kunjungan": p.soapListArray ? p.soapListArray.length : 0
+                };
+            });
+
+            // Sheet 2: Detail SOAP Rekam Medis
+            const soapRows = [];
+            globalPatients.forEach(p => {
+                if (p.soapListArray && p.soapListArray.length > 0) {
+                    p.soapListArray.forEach(s => {
+                        soapRows.push({
+                            "Nama Pasien": p.nama,
+                            "NIK": p.nik,
+                            "Tgl Kunjungan": s.tanggalFormatted || formatTanggal(s.tanggalKunjunganRaw),
+                            "Subjective (S)": s.s,
+                            "Objective (O)": s.o,
+                            "Assessment (A / ICD-10)": s.a,
+                            "Plan (P)": s.p
+                        });
+                    });
+                }
+            });
+
+            // Buat Workbook & Sheet Baru
+            const wb = XLSX.utils.book_new();
+            const wsPasien = XLSX.utils.json_to_sheet(pasienRows);
+            XLSX.utils.book_append_sheet(wb, wsPasien, "Master Pasien");
+
+            if (soapRows.length > 0) {
+                const wsSoap = XLSX.utils.json_to_sheet(soapRows);
+                XLSX.utils.book_append_sheet(wb, wsSoap, "Riwayat SOAP");
+            }
+
+            // Unduh File Excel
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Rekam_Medis_RME_${dateStr}.xlsx`);
         };
 
         // Simpan Pasien Baru ke Firebase
