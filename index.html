@@ -3,120 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rekam Medis Elektronik + SOAP & ICD-10 (Live Cloud)</title>
+    <title>Sistem Rekam Medis Elektronik (RME Cloud)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS CDN untuk Export Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-100 font-sans min-h-screen text-slate-800">
+<body class="bg-slate-50/80 font-sans min-h-screen text-slate-800 antialiased selection:bg-teal-500 selection:text-white">
 
-    <!-- Header / Navbar -->
-    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold flex items-center gap-2">
-                🏥 Aplikasi RME & Rekam Medis SOAP
-            </h1>
+    <!-- Header / Navbar Modern Glassmorphism -->
+    <header class="bg-slate-900/90 backdrop-blur-md text-white border-b border-slate-800 sticky top-0 z-30 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-teal-500/20 text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+                        RME <span class="text-xs px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-medium border border-teal-500/30">Pro Cloud</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-400">Praktek Mandiri & Layanan Kesehatan</p>
+                </div>
+            </div>
+
             <div id="userHeaderInfo" class="hidden flex items-center gap-3">
-                <span id="userEmailBadge" class="text-xs bg-indigo-800 px-3 py-1.5 rounded-full font-medium"></span>
-                <button onclick="window.handleLogout()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors shadow-sm">
-                    🚪 Logout
+                <div class="text-right hidden sm:block">
+                    <span id="userEmailBadge" class="text-xs font-semibold text-slate-200 block"></span>
+                    <span class="text-[10px] text-teal-400 font-medium flex items-center justify-end gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping"></span> Realtime Online
+                    </span>
+                </div>
+                <button onclick="window.handleLogout()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 border border-rose-500/30 text-xs px-3.5 py-2 rounded-xl font-medium transition-all flex items-center gap-1.5 active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>Keluar</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- ================= HALAMAN LOGIN ================= -->
-    <div id="viewLogin" class="min-h-[85vh] flex items-center justify-center px-4">
-        <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-200 w-full max-w-md space-y-6">
-            <div class="text-center space-y-1">
-                <div class="inline-flex p-3 bg-indigo-50 rounded-full text-indigo-600 mb-2">
-                    🏥
+    <div id="viewLogin" class="min-h-[88vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+        <!-- Ambient Light Effect -->
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="bg-white/80 backdrop-blur-xl p-8 sm:p-10 rounded-3xl shadow-2xl shadow-slate-200/60 border border-slate-100 w-full max-w-md space-y-6 relative z-10">
+            <div class="text-center space-y-2">
+                <div class="inline-flex p-3.5 bg-teal-50 rounded-2xl text-teal-600 mb-1 ring-8 ring-teal-50/50">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800">Login Sistem RME</h2>
-                <p class="text-xs text-slate-400">Masukkan email dan password terdaftar untuk masuk</p>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-900">Selamat Datang Kembali</h2>
+                <p class="text-xs text-slate-500">Masuk untuk mengelola rekam medis dan data pasien</p>
             </div>
 
             <form id="loginForm" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Email Staf / Dokter</label>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Email Pengguna</label>
                     <input type="email" id="loginEmail" required placeholder="dokter@klinik.com"
-                           class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Password</label>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Kata Sandi</label>
                     <input type="password" id="loginPassword" required placeholder="••••••••"
-                           class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all">
                 </div>
 
-                <div id="loginError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200 text-center font-medium"></div>
+                <div id="loginError" class="hidden text-xs text-rose-600 bg-rose-50/80 p-3 rounded-xl border border-rose-100 text-center font-medium"></div>
 
                 <button type="submit" id="btnLogin"
-                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm shadow-sm">
-                    Masuk ke Aplikasi
+                        class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-semibold py-3 rounded-xl transition-all text-sm shadow-lg shadow-teal-600/20 active:scale-[0.99]">
+                    Masuk Aplikasi
                 </button>
             </form>
         </div>
     </div>
 
     <!-- ================= HALAMAN UTAMA (PENDAFTARAN & PENCARIAN) ================= -->
-    <div id="viewMain" class="hidden max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <div id="viewMain" class="hidden max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         
-        <!-- Tab Navigasi: Pasien Lama vs Pasien Baru -->
-        <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex gap-2">
+        <!-- Tab Navigasi Pasien Lama vs Pasien Baru -->
+        <div class="bg-slate-200/60 p-1.5 rounded-2xl border border-slate-200 flex gap-1">
             <button id="tabLama" onclick="switchTab('lama')" 
-                    class="flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-sm">
-                🔍 Pasien Lama (Cari & Kunjungan Ulang)
+                    class="flex-1 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 bg-white text-slate-800 shadow-sm">
+                <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <span>Pasien Lama (Cari Data)</span>
             </button>
             <button id="tabBaru" onclick="switchTab('baru')" 
-                    class="flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200">
-                ➕ Pasien Baru (Pendaftaran Pertama)
+                    class="flex-1 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                <span>Pasien Baru (Daftar Pertama)</span>
             </button>
         </div>
 
         <!-- TAB 1: PENCARIAN PASIEN LAMA -->
-        <section id="sectionPasienLama" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 pb-3 border-b border-slate-100">
+        <section id="sectionPasienLama" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">Pencarian Data Pasien Lama</h2>
-                    <p class="text-xs text-slate-400">Cari nama/NIK pasien untuk menambah rekam medis kunjungan hari ini.</p>
+                    <h2 class="text-base font-bold text-slate-900">Direktori Pasien Terdaftar</h2>
+                    <p class="text-xs text-slate-500">Pilih pasien untuk memulai sesi pemeriksaan SOAP hari ini</p>
                 </div>
                 
-                <div class="flex items-center gap-2">
-                    <button onclick="window.exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1 shadow-sm">
-                        📊 Export Excel / Sheet
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <button onclick="window.exportToExcel()" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200 hover:border-emerald-200 text-xs px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center gap-2 active:scale-95">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span>Export Excel</span>
                     </button>
-                    <span id="patientCount" class="text-xs bg-indigo-50 text-indigo-600 font-semibold px-3 py-1.5 rounded-lg">
+                    <span id="patientCount" class="text-xs bg-teal-50 text-teal-700 font-semibold px-3 py-2 rounded-xl border border-teal-100/80">
                         Total: 0 Pasien
                     </span>
                 </div>
             </div>
 
             <!-- Search Bar -->
-            <div>
+            <div class="relative">
                 <input type="text" id="searchInput" onkeyup="renderPatientTable()" 
-                       placeholder="🔍 Ketik Nama Pasien atau NIK di sini..."
-                       class="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                       placeholder="Cari berdasarkan Nama Pasien atau 16 Digit NIK..."
+                       class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all">
+                <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
 
             <!-- Tabel Pasien -->
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto rounded-xl border border-slate-200/60">
                 <table class="w-full text-left text-sm border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 text-xs">
-                            <th class="p-3 font-semibold">Tgl Kunjungan Terakhir</th>
-                            <th class="p-3 font-semibold">Nama Pasien</th>
-                            <th class="p-3 font-semibold">NIK</th>
-                            <th class="p-3 font-semibold">No HP</th>
-                            <th class="p-3 font-semibold">Penanggung Jawab</th>
-                            <th class="p-3 font-semibold text-center">Aksi</th>
+                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 text-xs uppercase tracking-wider">
+                            <th class="p-3.5 font-semibold">Tgl Kunjungan</th>
+                            <th class="p-3.5 font-semibold">Nama Pasien</th>
+                            <th class="p-3.5 font-semibold">NIK</th>
+                            <th class="p-3.5 font-semibold">No HP</th>
+                            <th class="p-3.5 font-semibold">Penanggung Jawab</th>
+                            <th class="p-3.5 font-semibold text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="patientTableBody" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="6" class="p-4 text-center text-slate-400 italic">
-                                Memuat data dari database cloud...
+                            <td colspan="6" class="p-8 text-center text-slate-400 italic">
+                                Memuat database cloud...
                             </td>
                         </tr>
                     </tbody>
@@ -125,54 +152,54 @@
         </section>
 
         <!-- TAB 2: PENDAFTARAN PASIEN BARU -->
-        <section id="sectionPasienBaru" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200 max-w-2xl mx-auto space-y-4">
+        <section id="sectionPasienBaru" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 max-w-2xl mx-auto space-y-5">
             <div class="pb-3 border-b border-slate-100">
-                <h2 class="text-lg font-bold text-slate-800">Formulir Pendaftaran Pasien Baru</h2>
-                <p class="text-xs text-slate-400">Isi formulir ini untuk pasien yang belum pernah berobat sebelumnya.</p>
+                <h2 class="text-base font-bold text-slate-900">Formulir Pasien Baru</h2>
+                <p class="text-xs text-slate-500">Lengkapi identitas pasien untuk pembuatan rekam medis baru</p>
             </div>
 
             <form id="patientForm" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Tanggal Daftar</label>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Tanggal Pendaftaran</label>
                         <input type="date" id="tanggalKunjungan" required
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Nama Lengkap Pasien</label>
-                        <input type="text" id="nama" required placeholder="Contoh: Budi Santoso"
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Nama Lengkap Pasien</label>
+                        <input type="text" id="nama" required placeholder="Sesuai KTP / KK"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">NIK (16 Digit)</label>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">NIK (16 Digit)</label>
                         <input type="number" id="nik" required placeholder="3578xxxxxxxxxxxx"
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">No. HP / WhatsApp</label>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">No. HP / WhatsApp</label>
                         <input type="tel" id="noHp" required placeholder="081234567890"
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Penanggung Jawab Pasien</label>
-                    <input type="text" id="penanggungJawab" required placeholder="Contoh: Siti (Istri)"
-                           class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Penanggung Jawab Pasien</label>
+                    <input type="text" id="penanggungJawab" required placeholder="Contoh: Orang Tua / Suami / Istri"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Alamat Lengkap</label>
-                    <textarea id="alamat" rows="3" required placeholder="Jl. Mawar No. 12, Kota..."
-                              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Alamat Lengkap</label>
+                    <textarea id="alamat" rows="2" required placeholder="Jalan, RT/RW, Kelurahan, Kecamatan..."
+                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all"></textarea>
                 </div>
 
                 <button type="submit"
-                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm shadow-sm">
-                    Simpan & Daftarkan Pasien Baru
+                        class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition-all text-sm shadow-md active:scale-[0.99]">
+                    Simpan & Lanjutkan Pemeriksaan
                 </button>
             </form>
         </section>
@@ -180,120 +207,122 @@
     </div>
 
     <!-- ================= HALAMAN SOAP (PEMERIKSAAN MEDIS) ================= -->
-    <div id="viewSoap" class="hidden max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div id="viewSoap" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         
-        <!-- Header Info Pasien -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <!-- Header Info Pasien Modern Card -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-                <button onclick="window.kembaliKeUtama()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 mb-2 inline-flex items-center gap-1">
-                    ← Kembali ke Halaman Utama
+                <button onclick="window.kembaliKeUtama()" class="text-xs font-semibold text-teal-600 hover:text-teal-800 mb-2 inline-flex items-center gap-1 group">
+                    <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span>Kembali ke Halaman Utama</span>
                 </button>
-                <h2 id="soapPatientName" class="text-2xl font-bold text-slate-800">Nama Pasien</h2>
-                <p id="soapPatientInfo" class="text-sm text-slate-500 mt-1">NIK: - | No HP: - | Penanggung Jawab: -</p>
-                <p id="soapPatientMeta" class="text-xs text-slate-400 mt-0.5">Alamat: -</p>
+                <h2 id="soapPatientName" class="text-2xl font-bold tracking-tight text-slate-900">Nama Pasien</h2>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-1">
+                    <span id="soapPatientInfo" class="font-medium text-slate-600"></span>
+                </div>
+                <p id="soapPatientMeta" class="text-xs text-slate-400 mt-1"></p>
             </div>
-            <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-lg text-indigo-900 text-xs max-w-sm">
-                💡 **Sistem Real-Time:** Setiap rekam medis yang disimpan di sini akan langsung tersinkronkan ke seluruh perangkat yang membuka aplikasi ini.
+            <div class="bg-teal-50/80 border border-teal-100 p-3.5 rounded-xl text-teal-900 text-xs max-w-sm">
+                <span class="font-semibold block text-teal-950 mb-0.5">Sesi Rekam Medis Aktif</span>
+                Seluruh entri SOAP otomatis tersimpan permanen di cloud per tanggal pemeriksaan.
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <!-- Form Input SOAP Baru (Kiri) -->
-            <section class="lg:col-span-5 bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-fit">
-                <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
-                    📝 Input Pemeriksaan SOAP Baru
+            <section class="lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 h-fit space-y-4">
+                <h3 class="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    <span>Input Pemeriksaan (SOAP)</span>
                 </h3>
 
                 <form id="soapForm" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                             Tanggal Kunjungan Hari Ini
                         </label>
                         <input type="date" id="soapTanggal" required
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                               class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                        <label class="block text-xs font-bold text-rose-600 uppercase tracking-wider mb-1">
                             Subjective (S) - Keluhan Utama
                         </label>
-                        <textarea id="soapS" rows="2" required placeholder="Keluhan yang dirasakan pasien..."
-                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                        <textarea id="soapS" rows="2" required placeholder="Anamnesis, keluhan utama pasien..."
+                                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
-                            Objective (O) - Tanda Vital / Pemeriksaan Fisik
+                        <label class="block text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                            Objective (O) - Tanda Vital / Fisik
                         </label>
-                        <textarea id="soapO" rows="2" required placeholder="TD: 120/80, Suhu: 36.5°C, BB, TB, dll..."
-                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                        <textarea id="soapO" rows="2" required placeholder="TD: 120/80, Suhu: 36.5°C, Nadi, Fisik..."
+                                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all"></textarea>
                     </div>
 
                     <!-- ASSESSMENT DENGAN ICD-10 DROPDOWN SEARCH -->
                     <div class="relative space-y-1">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                        <label class="block text-xs font-bold text-amber-600 uppercase tracking-wider">
                             Assessment (A) - Diagnosis (ICD-10)
                         </label>
                         
-                        <input type="text" id="icdSearch" onkeyup="window.searchICD10()" placeholder="🔍 Ketik kode ICD atau nama penyakit (cth: Diare, J00)..."
-                               class="w-full px-3 py-2 border border-indigo-300 bg-indigo-50/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium">
+                        <input type="text" id="icdSearch" onkeyup="window.searchICD10()" placeholder="Cari Kode ICD / Nama Penyakit..."
+                               class="w-full px-3.5 py-2.5 border border-amber-200 bg-amber-50/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm font-medium transition-all">
 
-                        <!-- Dropdown Hasil Pencarian ICD-10 -->
-                        <div id="icdDropdown" class="hidden absolute left-0 right-0 top-[60px] bg-white border border-slate-200 rounded-lg shadow-xl max-h-52 overflow-y-auto z-20 divide-y divide-slate-100">
-                            <!-- Hasil Search ICD-10 -->
+                        <!-- Dropdown Hasil Search ICD-10 -->
+                        <div id="icdDropdown" class="hidden absolute left-0 right-0 top-[62px] bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-20 divide-y divide-slate-100">
+                            <!-- Options -->
                         </div>
 
-                        <!-- Hasil Terpilih ICD-10 -->
                         <textarea id="soapA" rows="2" required readonly placeholder="Diagnosis terpilih dari ICD-10 akan muncul di sini..."
-                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-slate-50 text-indigo-900 font-semibold focus:outline-none cursor-not-allowed"></textarea>
+                                  class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-100/70 text-slate-900 font-semibold focus:outline-none cursor-not-allowed"></textarea>
 
                         <div class="flex justify-between items-center text-[11px]">
-                            <span class="text-slate-400">*Pilih penyakit dari dropdown di atas.</span>
-                            <button type="button" onclick="window.clearICD()" class="text-red-500 hover:underline font-semibold">
-                                ↺ Reset Diagnosis
+                            <span class="text-slate-400">*Pilih penyakit dari dropdown search.</span>
+                            <button type="button" onclick="window.clearICD()" class="text-rose-500 hover:underline font-semibold">
+                                Reset ICD-10
                             </button>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
-                            Plan (P) - Rencana Terapi / Resep Obat
+                        <label class="block text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                            Plan (P) - Terapi / Resep / Edukasi
                         </label>
-                        <textarea id="soapP" rows="3" required placeholder="Resep obat, tindakan, edukasi..."
-                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                        <textarea id="soapP" rows="3" required placeholder="Instruksi obat, rencana tindakan, rujukan..."
+                                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-sm transition-all"></textarea>
                     </div>
 
                     <button type="submit"
-                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm shadow-sm">
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-all text-sm shadow-lg shadow-emerald-600/20 active:scale-[0.99]">
                         Simpan Rekam Medis SOAP
                     </button>
                 </form>
             </section>
 
             <!-- Riwayat SOAP Pasien (Kanan) -->
-            <section class="lg:col-span-7 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">
-                    📚 Riwayat Seluruh Rekam Medis Pasien
+            <section class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <h3 class="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100">
+                    📚 Riwayat Pemeriksaan Medis Pasien
                 </h3>
 
                 <div id="soapHistoryList" class="space-y-4">
-                    <!-- Cards Riwayat SOAP -->
+                    <!-- Cards SOAP -->
                 </div>
             </section>
         </div>
 
     </div>
 
-    <!-- Firebase SDK & JavaScript Logic -->
+    <!-- Firebase SDK & Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // EMAIL ADMIN UTAMA DENGAN HAK HAPUS
         const ADMIN_EMAIL = "hanifsatrio82@gmail.com";
 
-        // Konfigurasi Firebase milik Anda
         const firebaseConfig = {
             apiKey: "AIzaSyAU8D9lJL4Xy3nHzi3Z6ji0RhrECg_wUlM",
             authDomain: "rme-klinik-481fe.firebaseapp.com",
@@ -304,7 +333,6 @@
             appId: "1:1034865171513:web:b0830494f8be56be9941e8"
         };
 
-        // Inisialisasi Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const auth = getAuth(app);
@@ -313,11 +341,9 @@
         let globalPatients = [];
         let currentPatientId = null;
 
-        // Auto-set tanggal hari ini
         document.getElementById('tanggalKunjungan').valueAsDate = new Date();
         document.getElementById('soapTanggal').valueAsDate = new Date();
 
-        // Database ICD-10
         const icd10Database = [
             { code: "A01.0", name: "Typhoid fever (Demam Tifoid / Tipes)" },
             { code: "A09", name: "Gastroenteritis and colitis (Diare / Muntaber)" },
@@ -348,10 +374,7 @@
             { code: "T14.1", name: "Open wound of unspecified body region (Luka Terbuka)" }
         ];
 
-        // ==========================================
-        // LOGIC AUTHENTICATION (LOGIN & LOGOUT)
-        // ==========================================
-
+        // Auth Listener
         onAuthStateChanged(auth, (user) => {
             const viewLogin = document.getElementById('viewLogin');
             const viewMain = document.getElementById('viewMain');
@@ -366,7 +389,7 @@
                 userHeaderInfo.classList.add('flex');
                 
                 const roleTag = user.email === ADMIN_EMAIL ? " (Admin)" : " (Staf)";
-                userEmailBadge.textContent = `👤 ${user.email}${roleTag}`;
+                userEmailBadge.textContent = `${user.email}${roleTag}`;
             } else {
                 viewLogin.classList.remove('hidden');
                 viewMain.classList.add('hidden');
@@ -376,6 +399,7 @@
             }
         });
 
+        // Form Login
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
@@ -390,25 +414,24 @@
             signInWithEmailAndPassword(auth, email, password)
                 .then(() => {
                     document.getElementById('loginForm').reset();
-                    btnLogin.textContent = "Masuk ke Aplikasi";
+                    btnLogin.textContent = "Masuk Aplikasi";
                     btnLogin.disabled = false;
                 })
                 .catch((error) => {
-                    console.error("Login Error:", error);
-                    loginError.textContent = "Email atau password salah! Silakan coba lagi.";
+                    loginError.textContent = "Email atau password salah!";
                     loginError.classList.remove('hidden');
-                    btnLogin.textContent = "Masuk ke Aplikasi";
+                    btnLogin.textContent = "Masuk Aplikasi";
                     btnLogin.disabled = false;
                 });
         });
 
         window.handleLogout = function() {
-            if (confirm('Apakah Anda yakin ingin keluar dari aplikasi?')) {
+            if (confirm('Keluar dari aplikasi RME?')) {
                 signOut(auth);
             }
         };
 
-        // Realtime Listener Firebase
+        // Realtime Data
         onValue(patientsRef, (snapshot) => {
             globalPatients = [];
             if (snapshot.exists()) {
@@ -416,23 +439,16 @@
                 Object.keys(data).forEach(key => {
                     const p = data[key];
                     p.id = key;
-                    
                     if (p.soapList && typeof p.soapList === 'object') {
-                        p.soapListArray = Object.keys(p.soapList).map(sKey => ({
-                            id: sKey,
-                            ...p.soapList[sKey]
-                        }));
+                        p.soapListArray = Object.keys(p.soapList).map(sKey => ({ id: sKey, ...p.soapList[sKey] }));
                     } else {
                         p.soapListArray = [];
                     }
                     globalPatients.push(p);
                 });
             }
-            
             renderPatientTable();
-            if (currentPatientId) {
-                renderRiwayatSOAP();
-            }
+            if (currentPatientId) renderRiwayatSOAP();
         });
 
         function formatTanggal(dateString) {
@@ -442,7 +458,7 @@
             return dateString;
         }
 
-        // Render Tabel Utama (Hanya Tampilkan Tombol Hapus Jika Admin)
+        // Render Tabel Utama
         window.renderPatientTable = function() {
             const tableBody = document.getElementById('patientTableBody');
             const patientCount = document.getElementById('patientCount');
@@ -458,14 +474,13 @@
             if (filtered.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="p-4 text-center text-slate-400 italic">
-                            Belum ada data pasien atau data tidak ditemukan.
+                        <td colspan="6" class="p-8 text-center text-slate-400 italic">
+                            Belum ada data pasien terdaftar.
                         </td>
                     </tr>`;
                 return;
             }
 
-            // Cek apakah user yang login adalah Admin Utama
             const currentUser = auth.currentUser;
             const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
 
@@ -478,28 +493,28 @@
                 }
 
                 const deleteButtonHtml = isAdmin ? `
-                    <button onclick="window.hapusSatuPasien('${p.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs px-2 py-1.5 rounded-lg font-medium transition-colors">
+                    <button onclick="window.hapusSatuPasien('${p.id}')" class="text-rose-600 hover:text-rose-800 hover:bg-rose-50 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors">
                         Hapus
                     </button>
                 ` : '';
 
                 const row = `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="p-3 text-slate-700 font-semibold whitespace-nowrap">
-                            📅 ${formatTanggal(tglTerakhir)}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="p-3.5 text-slate-600 font-medium whitespace-nowrap text-xs">
+                            ${formatTanggal(tglTerakhir)}
                         </td>
-                        <td class="p-3">
-                            <button onclick="window.bukaSOAP('${p.id}')" class="font-bold text-indigo-600 hover:text-indigo-900 text-left hover:underline block">
+                        <td class="p-3.5">
+                            <button onclick="window.bukaSOAP('${p.id}')" class="font-semibold text-teal-600 hover:text-teal-800 text-left hover:underline block">
                                 ${p.nama}
                             </button>
-                            <span class="block text-[10px] text-slate-400">${soapCount} Rekam Medis</span>
+                            <span class="block text-[10px] text-slate-400">${soapCount} Sesi SOAP</span>
                         </td>
-                        <td class="p-3 text-slate-600">${p.nik}</td>
-                        <td class="p-3 text-slate-600">${p.noHp}</td>
-                        <td class="p-3 text-slate-600">${p.penanggungJawab}</td>
-                        <td class="p-3 text-center space-x-1 whitespace-nowrap">
-                            <button onclick="window.bukaSOAP('${p.id}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1.5 rounded-lg font-semibold transition-colors">
-                                + Pemeriksaan (SOAP)
+                        <td class="p-3.5 text-slate-600 text-xs">${p.nik}</td>
+                        <td class="p-3.5 text-slate-600 text-xs">${p.noHp}</td>
+                        <td class="p-3.5 text-slate-600 text-xs">${p.penanggungJawab}</td>
+                        <td class="p-3.5 text-center space-x-1 whitespace-nowrap">
+                            <button onclick="window.bukaSOAP('${p.id}')" class="bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                                + Pemeriksaan
                             </button>
                             ${deleteButtonHtml}
                         </td>
@@ -508,10 +523,10 @@
             });
         };
 
-        // Export to Excel
+        // Export Excel
         window.exportToExcel = function() {
             if (globalPatients.length === 0) {
-                alert('Belum ada data pasien untuk di-export!');
+                alert('Belum ada data pasien!');
                 return;
             }
 
@@ -551,19 +566,16 @@
             });
 
             const wb = XLSX.utils.book_new();
-            const wsPasien = XLSX.utils.json_to_sheet(pasienRows);
-            XLSX.utils.book_append_sheet(wb, wsPasien, "Master Pasien");
-
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pasienRows), "Master Pasien");
             if (soapRows.length > 0) {
-                const wsSoap = XLSX.utils.json_to_sheet(soapRows);
-                XLSX.utils.book_append_sheet(wb, wsSoap, "Riwayat SOAP");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(soapRows), "Riwayat SOAP");
             }
 
             const dateStr = new Date().toISOString().split('T')[0];
             XLSX.writeFile(wb, `Rekam_Medis_RME_${dateStr}.xlsx`);
         };
 
-        // Simpan Pasien Baru
+        // Simpan Pasien
         document.getElementById('patientForm').addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -578,24 +590,18 @@
             };
 
             if (globalPatients.some(p => p.nik === newPatient.nik)) {
-                alert('⚠️ Pasien dengan NIK ini sudah terdaftar! Gunakan Tab "Pasien Lama".');
+                alert('⚠️ NIK Pasien sudah terdaftar!');
                 return;
             }
 
-            push(patientsRef, newPatient)
-                .then((newRef) => {
-                    alert('Pasien baru berhasil disimpan!');
-                    document.getElementById('patientForm').reset();
-                    document.getElementById('tanggalKunjungan').valueAsDate = new Date();
-                    window.bukaSOAP(newRef.key);
-                })
-                .catch((err) => {
-                    console.error('Error saving patient:', err);
-                    alert('Gagal menyimpan ke cloud!');
-                });
+            push(patientsRef, newPatient).then((newRef) => {
+                document.getElementById('patientForm').reset();
+                document.getElementById('tanggalKunjungan').valueAsDate = new Date();
+                window.bukaSOAP(newRef.key);
+            });
         });
 
-        // Buka Tampilan SOAP
+        // SOAP Logic
         window.bukaSOAP = function(patientId) {
             const patient = globalPatients.find(p => p.id === patientId);
             if (!patient) return;
@@ -603,7 +609,7 @@
             currentPatientId = patientId;
 
             document.getElementById('soapPatientName').textContent = patient.nama;
-            document.getElementById('soapPatientInfo').textContent = `NIK: ${patient.nik} | No. HP: ${patient.noHp} | Penanggung Jawab: ${patient.penanggungJawab}`;
+            document.getElementById('soapPatientInfo').textContent = `NIK: ${patient.nik} • No. HP: ${patient.noHp} • Penanggung Jawab: ${patient.penanggungJawab}`;
             document.getElementById('soapPatientMeta').textContent = `Alamat: ${patient.alamat}`;
 
             document.getElementById('viewMain').classList.add('hidden');
@@ -614,7 +620,6 @@
             renderRiwayatSOAP();
         };
 
-        // Kembali ke Utama
         window.kembaliKeUtama = function() {
             currentPatientId = null;
             document.getElementById('viewSoap').classList.add('hidden');
@@ -624,7 +629,6 @@
             window.switchTab('lama');
         };
 
-        // Simpan SOAP
         document.getElementById('soapForm').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!currentPatientId) return;
@@ -641,27 +645,20 @@
             };
 
             const soapRef = ref(database, `pasien/${currentPatientId}/soapList`);
-            push(soapRef, newSoap)
-                .then(() => {
-                    document.getElementById('soapForm').reset();
-                    document.getElementById('soapTanggal').valueAsDate = new Date();
-                    window.clearICD();
-                    alert('Rekam Medis SOAP Berhasil Disimpan!');
-                })
-                .catch((err) => {
-                    console.error('Error saving SOAP:', err);
-                    alert('Gagal menyimpan SOAP!');
-                });
+            push(soapRef, newSoap).then(() => {
+                document.getElementById('soapForm').reset();
+                document.getElementById('soapTanggal').valueAsDate = new Date();
+                window.clearICD();
+            });
         });
 
-        // Render Riwayat SOAP
         function renderRiwayatSOAP() {
             const patient = globalPatients.find(p => p.id === currentPatientId);
             const historyContainer = document.getElementById('soapHistoryList');
 
             if (!patient || !patient.soapListArray || patient.soapListArray.length === 0) {
                 historyContainer.innerHTML = `
-                    <div class="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl text-slate-400">
+                    <div class="text-center py-12 border-2 border-dashed border-slate-200/80 rounded-2xl text-slate-400 text-xs">
                         Belum ada riwayat rekam medis SOAP untuk pasien ini.
                     </div>`;
                 return;
@@ -670,28 +667,28 @@
             historyContainer.innerHTML = '';
             patient.soapListArray.slice().reverse().forEach(soap => {
                 const card = `
-                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
-                        <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                            <span class="text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full flex items-center gap-1">
-                                📅 Kunjungan Tanggal: ${soap.tanggalFormatted}
+                    <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50/50 space-y-3 hover:bg-white transition-all shadow-sm">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <span class="text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1 rounded-full">
+                                📅 Kunjungan: ${soap.tanggalFormatted}
                             </span>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                            <div class="bg-white p-2.5 rounded border border-slate-200">
-                                <span class="font-bold text-red-600 block mb-1">S (Subjective):</span>
-                                <p class="text-slate-700 whitespace-pre-line">${soap.s}</p>
+                            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-2xl shadow-slate-100">
+                                <span class="font-bold text-rose-600 block mb-1">S (Subjective)</span>
+                                <p class="text-slate-700 whitespace-pre-line leading-relaxed">${soap.s}</p>
                             </div>
-                            <div class="bg-white p-2.5 rounded border border-slate-200">
-                                <span class="font-bold text-blue-600 block mb-1">O (Objective):</span>
-                                <p class="text-slate-700 whitespace-pre-line">${soap.o}</p>
+                            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-2xl shadow-slate-100">
+                                <span class="font-bold text-blue-600 block mb-1">O (Objective)</span>
+                                <p class="text-slate-700 whitespace-pre-line leading-relaxed">${soap.o}</p>
                             </div>
-                            <div class="bg-white p-2.5 rounded border border-slate-200">
-                                <span class="font-bold text-amber-600 block mb-1">A (Assessment / ICD-10):</span>
-                                <p class="text-slate-900 font-bold whitespace-pre-line">${soap.a}</p>
+                            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-2xl shadow-slate-100">
+                                <span class="font-bold text-amber-600 block mb-1">A (Assessment / ICD-10)</span>
+                                <p class="text-slate-900 font-bold whitespace-pre-line leading-relaxed">${soap.a}</p>
                             </div>
-                            <div class="bg-white p-2.5 rounded border border-slate-200">
-                                <span class="font-bold text-emerald-600 block mb-1">P (Plan):</span>
-                                <p class="text-slate-700 whitespace-pre-line">${soap.p}</p>
+                            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-2xl shadow-slate-100">
+                                <span class="font-bold text-emerald-600 block mb-1">P (Plan)</span>
+                                <p class="text-slate-700 whitespace-pre-line leading-relaxed">${soap.p}</p>
                             </div>
                         </div>
                     </div>`;
@@ -699,21 +696,18 @@
             });
         }
 
-        // Hapus Pasien (Proteksi Khusus Admin)
         window.hapusSatuPasien = function(patientId) {
             const currentUser = auth.currentUser;
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
-                alert('⚠️ Akses Ditolak: Hanya Admin (hanifsatrio82@gmail.com) yang diizinkan menghapus data!');
+                alert('⚠️ Akses Ditolak: Hanya Admin yang diizinkan menghapus data!');
                 return;
             }
 
-            if (confirm('Hapus pasien ini beserta seluruh riwayat SOAP-nya dari cloud?')) {
-                const singlePatientRef = ref(database, `pasien/${patientId}`);
-                remove(singlePatientRef);
+            if (confirm('Hapus pasien ini beserta seluruh riwayat SOAP-nya?')) {
+                remove(ref(database, `pasien/${patientId}`));
             }
         };
 
-        // Tab Navigation
         window.switchTab = function(tabName) {
             const tabLama = document.getElementById('tabLama');
             const tabBaru = document.getElementById('tabBaru');
@@ -721,20 +715,19 @@
             const sectionPasienBaru = document.getElementById('sectionPasienBaru');
 
             if (tabName === 'lama') {
-                tabLama.className = "flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-sm";
-                tabBaru.className = "flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                tabLama.className = "flex-1 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 bg-white text-slate-800 shadow-sm";
+                tabBaru.className = "flex-1 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900";
                 sectionPasienLama.classList.remove('hidden');
                 sectionPasienBaru.classList.add('hidden');
                 window.renderPatientTable();
             } else {
-                tabBaru.className = "flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-sm";
-                tabLama.className = "flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                tabBaru.className = "flex-1 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 bg-white text-slate-800 shadow-sm";
+                tabLama.className = "flex-1 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900";
                 sectionPasienBaru.classList.remove('hidden');
                 sectionPasienLama.classList.add('hidden');
             }
         };
 
-        // ICD-10 Autocomplete Logic
         window.searchICD10 = function() {
             const input = document.getElementById('icdSearch').value.toLowerCase();
             const dropdown = document.getElementById('icdDropdown');
@@ -755,10 +748,10 @@
                 dropdown.innerHTML = '';
                 results.forEach(item => {
                     const option = document.createElement('div');
-                    option.className = 'p-2.5 hover:bg-indigo-50 cursor-pointer text-xs flex justify-between items-center transition-colors';
+                    option.className = 'p-2.5 hover:bg-teal-50/60 cursor-pointer text-xs flex justify-between items-center transition-colors';
                     option.innerHTML = `
                         <div>
-                            <span class="font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded mr-2">[${item.code}]</span>
+                            <span class="font-bold text-teal-700 bg-teal-50 border border-teal-100 px-1.5 py-0.5 rounded mr-2">[${item.code}]</span>
                             <span class="text-slate-700">${item.name}</span>
                         </div>`;
                     option.onclick = () => {
