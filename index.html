@@ -290,6 +290,9 @@
         import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // EMAIL ADMIN UTAMA DENGAN HAK HAPUS
+        const ADMIN_EMAIL = "hanifsatrio82@gmail.com";
+
         // Konfigurasi Firebase milik Anda
         const firebaseConfig = {
             apiKey: "AIzaSyAU8D9lJL4Xy3nHzi3Z6ji0RhrECg_wUlM",
@@ -349,7 +352,6 @@
         // LOGIC AUTHENTICATION (LOGIN & LOGOUT)
         // ==========================================
 
-        // Listener Status Login User
         onAuthStateChanged(auth, (user) => {
             const viewLogin = document.getElementById('viewLogin');
             const viewMain = document.getElementById('viewMain');
@@ -358,14 +360,14 @@
             const userEmailBadge = document.getElementById('userEmailBadge');
 
             if (user) {
-                // User Sudah Login
                 viewLogin.classList.add('hidden');
                 viewMain.classList.remove('hidden');
                 userHeaderInfo.classList.remove('hidden');
                 userHeaderInfo.classList.add('flex');
-                userEmailBadge.textContent = `👤 ${user.email}`;
+                
+                const roleTag = user.email === ADMIN_EMAIL ? " (Admin)" : " (Staf)";
+                userEmailBadge.textContent = `👤 ${user.email}${roleTag}`;
             } else {
-                // User Belum Login
                 viewLogin.classList.remove('hidden');
                 viewMain.classList.add('hidden');
                 viewSoap.classList.add('hidden');
@@ -374,7 +376,6 @@
             }
         });
 
-        // Event Form Login
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
@@ -401,14 +402,13 @@
                 });
         });
 
-        // Logout
         window.handleLogout = function() {
             if (confirm('Apakah Anda yakin ingin keluar dari aplikasi?')) {
                 signOut(auth);
             }
         };
 
-        // Realtime Listener Firebase (Auto Sync All Devices)
+        // Realtime Listener Firebase
         onValue(patientsRef, (snapshot) => {
             globalPatients = [];
             if (snapshot.exists()) {
@@ -435,7 +435,6 @@
             }
         });
 
-        // Format Tanggal (DD/MM/YYYY)
         function formatTanggal(dateString) {
             if (!dateString) return '-';
             const parts = dateString.split('-');
@@ -443,7 +442,7 @@
             return dateString;
         }
 
-        // Render Tabel Utama
+        // Render Tabel Utama (Hanya Tampilkan Tombol Hapus Jika Admin)
         window.renderPatientTable = function() {
             const tableBody = document.getElementById('patientTableBody');
             const patientCount = document.getElementById('patientCount');
@@ -466,6 +465,10 @@
                 return;
             }
 
+            // Cek apakah user yang login adalah Admin Utama
+            const currentUser = auth.currentUser;
+            const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+
             tableBody.innerHTML = '';
             filtered.slice().reverse().forEach((p) => {
                 const soapCount = p.soapListArray ? p.soapListArray.length : 0;
@@ -473,6 +476,12 @@
                 if (p.soapListArray && p.soapListArray.length > 0) {
                     tglTerakhir = p.soapListArray[p.soapListArray.length - 1].tanggalKunjunganRaw || p.tanggalKunjungan;
                 }
+
+                const deleteButtonHtml = isAdmin ? `
+                    <button onclick="window.hapusSatuPasien('${p.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs px-2 py-1.5 rounded-lg font-medium transition-colors">
+                        Hapus
+                    </button>
+                ` : '';
 
                 const row = `
                     <tr class="hover:bg-slate-50 transition-colors">
@@ -492,16 +501,14 @@
                             <button onclick="window.bukaSOAP('${p.id}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1.5 rounded-lg font-semibold transition-colors">
                                 + Pemeriksaan (SOAP)
                             </button>
-                            <button onclick="window.hapusSatuPasien('${p.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs px-2 py-1.5 rounded-lg font-medium transition-colors">
-                                Hapus
-                            </button>
+                            ${deleteButtonHtml}
                         </td>
                     </tr>`;
                 tableBody.innerHTML += row;
             });
         };
 
-        // FUNGSI EXPORT TO EXCEL / GOOGLE SHEETS
+        // Export to Excel
         window.exportToExcel = function() {
             if (globalPatients.length === 0) {
                 alert('Belum ada data pasien untuk di-export!');
@@ -556,7 +563,7 @@
             XLSX.writeFile(wb, `Rekam_Medis_RME_${dateStr}.xlsx`);
         };
 
-        // Simpan Pasien Baru ke Firebase
+        // Simpan Pasien Baru
         document.getElementById('patientForm').addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -617,7 +624,7 @@
             window.switchTab('lama');
         };
 
-        // Simpan SOAP ke Firebase
+        // Simpan SOAP
         document.getElementById('soapForm').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!currentPatientId) return;
@@ -692,8 +699,14 @@
             });
         }
 
-        // Hapus Pasien di Firebase
+        // Hapus Pasien (Proteksi Khusus Admin)
         window.hapusSatuPasien = function(patientId) {
+            const currentUser = auth.currentUser;
+            if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+                alert('⚠️ Akses Ditolak: Hanya Admin (hanifsatrio82@gmail.com) yang diizinkan menghapus data!');
+                return;
+            }
+
             if (confirm('Hapus pasien ini beserta seluruh riwayat SOAP-nya dari cloud?')) {
                 const singlePatientRef = ref(database, `pasien/${patientId}`);
                 remove(singlePatientRef);
